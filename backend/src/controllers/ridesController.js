@@ -1,4 +1,5 @@
 import Ride from "../models/Ride.js";
+import RideRequest from "../models/RideRequest.js";
 
 // @desc    Create a new ride
 // @route   POST /api/rides
@@ -94,9 +95,23 @@ export async function cancelRide(req, res) {
         ride.status = "cancelled";
         await ride.save();
 
-        // Note: cascade to RideRequests and Notifications will be added in features 8-9
+        const requestUpdateResult = await RideRequest.updateMany(
+            {
+                ride: ride._id,
+                status: "accepted",
+            },
+            {
+                $set: {
+                    status: "cancelled",
+                },
+            }
+        );
 
-        res.status(200).json({ message: "Ride cancelled successfully", ride });
+        res.status(200).json({
+            message: "Ride cancelled successfully",
+            ride,
+            cancelledAcceptedRequests: requestUpdateResult.modifiedCount,
+        });
     } catch (error) {
         console.error("Error in cancelRide controller:", error);
         res.status(500).json({ message: "Internal server error" });

@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import ridesRoutes from "./routes/ridesRoutes.js";
 import authRoutes from "./routes/auth.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
+import rideRequestRoutes from "./routes/rideRequest.routes.js";
+import negotiationRoutes from "./routes/negotiation.routes.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv"
 import vehicleRoutes from "./routes/vehicleRoutes.js";
@@ -35,8 +37,20 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/rides", ridesRoutes);
+
 app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/saved-routes", savedRouteRoutes);
+
+app.use("/api/requests", rideRequestRoutes);
+app.use("/api/negotiations", negotiationRoutes);
+
+app.get("/", (_req, res) => {
+    res.status(200).json({
+        status: "ok",
+        message: "Carpoolio backend is running",
+    });
+});
+
 
 app.listen(PORT, () => {
     console.log("Server started on PORT:", PORT);
