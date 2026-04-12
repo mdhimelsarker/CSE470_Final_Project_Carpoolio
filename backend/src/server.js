@@ -8,6 +8,9 @@ import authRoutes from "./routes/auth.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv"
+import vehicleRoutes from "./routes/vehicleRoutes.js";
+import savedRouteRoutes from "./routes/savedRoutes.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +35,8 @@ app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/rides", ridesRoutes);
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/saved-routes", savedRouteRoutes);
 
 app.listen(PORT, () => {
     console.log("Server started on PORT:", PORT);
