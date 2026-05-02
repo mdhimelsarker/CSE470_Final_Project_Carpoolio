@@ -1,5 +1,6 @@
 import Ride from "../models/Ride.js";
 import RideRequest from "../models/RideRequest.js";
+import Notification from "../models/Notification.js";
 
 // @desc    Create a new ride
 // @route   POST /api/rides
@@ -82,12 +83,10 @@ export async function cancelRide(req, res) {
             return res.status(404).json({ message: "Ride not found" });
         }
 
-        // Only driver can cancel
         if (ride.driver.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: "Forbidden - You are not the driver of this ride" });
         }
 
-        // Can only cancel if open or full
         if (!["open", "full"].includes(ride.status)) {
             return res.status(400).json({ message: "Ride cannot be cancelled at this stage" });
         }
@@ -95,25 +94,83 @@ export async function cancelRide(req, res) {
         ride.status = "cancelled";
         await ride.save();
 
-        const requestUpdateResult = await RideRequest.updateMany(
-            {
-                ride: ride._id,
-                status: "accepted",
-            },
-            {
-                $set: {
-                    status: "cancelled",
-                },
-            }
+        const acceptedRequests = await RideRequest.find({
+            ride: ride._id,
+            status: "accepted",
+        });
+
+        await RideRequest.updateMany(
+            { ride: ride._id, status: "accepted" },
+            { $set: { status: "cancelled" } }
         );
+
+        // Notify all affected passengers
+        const notifications = acceptedRequests.map((request) => ({
+            recipient: request.passenger,
+            type: "ride_cancelled",
+            message: `Your ride from ${ride.origin} to ${ride.destination} has been cancelled by the driver.`,
+            relatedRide: ride._id,
+        }));
+
+        if (notifications.length > 0) {
+            await Notification.insertMany(notifications);
+        }
 
         res.status(200).json({
             message: "Ride cancelled successfully",
             ride,
-            cancelledAcceptedRequests: requestUpdateResult.modifiedCount,
+            cancelledPassengers: acceptedRequests.length,
         });
     } catch (error) {
         console.error("Error in cancelRide controller:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// @desc    Get all rides with optional filters
+// @route   GET /api/rides
+export async function getAllRides(req, res) {
+    try {
+        const { origin, destination, date, seats } = req.query;
+
+        const filter = { status: "open" };
+
+        if (origin) filter.origin = { $regex: origin, $options: "i" };
+        if (destination) filter.destination = { $regex: destination, $options: "i" };
+        if (seats) filter.availableSeats = { $gte: parseInt(seats) };
+        if (date) {
+            const start = new Date(date);
+            const end = new Date(date);
+            end.setDate(end.getDate() + 1);
+            filter.departureTime = { $gte: start, $lt: end };
+        }
+
+        const rides = await Ride.find(filter)
+            .populate("driver", "name email avgRating")
+            .populate("vehicle");
+
+        res.status(200).json(rides);
+    } catch (error) {
+        console.error("Error in getAllRides controller:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+// @desc    Get single ride by ID
+// @route   GET /api/rides/:rideId
+export async function getRideById(req, res) {
+    try {
+        const ride = await Ride.findById(req.params.rideId)
+            .populate("driver", "name email avgRating avatar")
+            .populate("vehicle");
+
+        if (!ride) {
+            return res.status(404).json({ message: "Ride not found" });
+        }
+
+        res.status(200).json(ride);
+    } catch (error) {
+        console.error("Error in getRideById controller:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }

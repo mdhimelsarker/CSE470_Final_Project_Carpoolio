@@ -1,5 +1,6 @@
 import Ride from "../models/Ride.js";
 import RideRequest from "../models/RideRequest.js";
+import Notification from "../models/Notification.js";
 
 // @desc    Passenger sends request to join an open ride
 // @route   POST /api/ride-requests/:rideId
@@ -164,6 +165,13 @@ export async function respondToRequest(req, res) {
 
             await Promise.all([request.save(), ride.save()]);
 
+            await Notification.create({
+                recipient: request.passenger,
+                type: "request_accepted",
+                message: `Your request to join the ride from ${ride.origin} to ${ride.destination} has been accepted.`,
+                relatedRide: ride._id,
+            });
+
             return res.status(200).json({
                 message: "Ride request accepted",
                 request,
@@ -173,6 +181,13 @@ export async function respondToRequest(req, res) {
 
         request.status = "rejected";
         await request.save();
+
+        await Notification.create({
+            recipient: request.passenger,
+            type: "request_rejected",
+            message: `Your request to join the ride from ${ride.origin} to ${ride.destination} has been rejected.`,
+            relatedRide: ride._id,
+        });
 
         return res.status(200).json({
             message: "Ride request rejected",
