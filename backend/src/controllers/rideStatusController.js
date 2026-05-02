@@ -75,10 +75,13 @@ export const cancelRide = async (req, res) => {
         const ride = await Ride.findById(rideId);
 
         if (!ride) {
-            return res.status(404).json({ message: "Ride not found" });
+            return res.status(404).json({
+                message: "Ride not found",
+            });
         }
 
         ride.status = "cancelled";
+
         await ride.save();
 
         res.status(200).json({
@@ -88,6 +91,9 @@ export const cancelRide = async (req, res) => {
 
     } catch (error) {
         console.error("Error in cancelRide:", error);
-        res.status(500).json({ message: "Internal server error" });
+
+        res.status(500).json({
+            message: "Internal server error",
+        });
     }
 };

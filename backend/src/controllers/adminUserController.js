@@ -47,6 +47,38 @@ export const banUser = async (req, res) => {
     }
 };
 
+// Unban user
+
+export const unbanUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        user.isBanned = false;
+
+        await user.save();
+
+        res.status(200).json({
+            message: "User unbanned successfully",
+            user,
+        });
+
+    } catch (error) {
+        console.error("Error in unbanUser:", error);
+
+        res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+};
+
 // Verify user
 export const verifyUser = async (req, res) => {
     try {
