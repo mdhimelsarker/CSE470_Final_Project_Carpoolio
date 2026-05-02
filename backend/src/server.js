@@ -17,6 +17,8 @@ import notificationRoutes from "./routes/notification.routes.js";
 import rideStatusRoutes from "./routes/rideStatus.routes.js";
 import historyRoutes from "./routes/history.routes.js";
 import adminUserRoutes from "./routes/adminUser.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +46,8 @@ app.use("/api/saved-routes", savedRouteRoutes);
 app.use("/api/requests", rideRequestRoutes);
 app.use("/api/negotiations", negotiationRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/ride-status", rideStatusRoutes);
 app.use("/api/history", historyRoutes);

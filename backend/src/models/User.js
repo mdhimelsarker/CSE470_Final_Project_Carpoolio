@@ -53,6 +53,12 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        avgRating: {
+            type: Number,
+            default: 0,
+            min: [0, "Average rating cannot be negative"],
+            max: [5, "Average rating cannot exceed 5"],
+        },
     },
     { timestamps: true }
 );
