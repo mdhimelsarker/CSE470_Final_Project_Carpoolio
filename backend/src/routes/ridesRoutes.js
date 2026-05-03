@@ -1,10 +1,12 @@
 import express from "express";
 import { createRide, updateRide, cancelRide, getAllRides, getRideById } from "../controllers/ridesController.js";
 import { sendRequest, cancelRequest, respondToRequest, getRequestsForRide } from "../controllers/rideRequestController.js";
+import { getRecommendedRides } from "../controllers/recommendationController.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
+router.get("/recommended", protectRoute, getRecommendedRides);
 router.get("/", getAllRides);
 router.get("/:rideId", getRideById);
 router.post("/", protectRoute, createRide);
