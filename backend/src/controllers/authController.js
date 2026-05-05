@@ -6,7 +6,7 @@ import { generateTokens, setTokenCookies } from "../utils/generateTokens.js";
 // @route   POST /api/auth/register
 export async function register(req, res) {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
 
         // Validate required fields
         if (!name || !email || !password) {
@@ -25,7 +25,7 @@ export async function register(req, res) {
         }
 
         // Create user
-        const user = new User({ name, email, password });
+        const user = new User({ name, email, password, role: role === 'admin' ? 'admin' : 'user' });
         await user.save();
 
         // Generate tokens and set cookies
@@ -68,6 +68,10 @@ export async function login(req, res) {
         const isPasswordValid = await user.comparePassword(password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        if (user.isBanned) {
+            return res.status(403).json({ message: "Your account has been banned" });
         }
 
         // Generate tokens and set cookies

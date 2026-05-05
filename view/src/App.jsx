@@ -18,6 +18,7 @@ import AdminPage from './pages/AdminPage'
 import RecommendedRidesPage from './pages/RecommendedRidesPage'
 import ReviewPage from './pages/ReviewPage'
 import NotFoundPage from './pages/NotFoundPage'
+import NegotiationPage from './pages/NegotiationPage'
 
 const App = () => {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "nord")
@@ -108,6 +109,7 @@ const App = () => {
           <Route path="/dashboard/passenger" element={<PassengerDashboardPage user={user} />} />
           <Route path="/profile" element={<ProfilePage user={user} setUser={setUser} />} />
           <Route path="/notifications" element={<NotificationsPage user={user} onNotificationRead={fetchUnreadCount} />} />
+          <Route path="/negotiate/:requestId" element={<NegotiationPage user={user} />} />
           <Route path="/history" element={<RideHistoryPage user={user} />} />
           <Route path="/vehicles" element={<VehicleManagementPage user={user} />} />
           <Route path="/saved-routes" element={<SavedRoutesPage user={user} />} />

@@ -7,22 +7,18 @@ const PassengerDashboardPage = ({ user }) => {
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState(null)
   const [completedRides, setCompletedRides] = useState([])
+  const [allRequests, setAllRequests] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
+    if (!user) { navigate('/login'); return }
     fetchDashboard()
-    fetchCompletedRides()
+    fetchAllRequests()
   }, [user])
 
   const fetchDashboard = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/dashboard/passenger', {
-        credentials: 'include'
-      })
+      const res = await fetch('http://localhost:5001/api/dashboard/passenger', { credentials: 'include' })
       const data = await res.json()
       if (res.ok) setDashboard(data)
     } catch (error) {
@@ -32,34 +28,30 @@ const PassengerDashboardPage = ({ user }) => {
     }
   }
 
-  const fetchCompletedRides = async () => {
+  const fetchAllRequests = async () => {
     try {
-      const res = await fetch('http://localhost:5001/api/requests/my', {
-        credentials: 'include'
-      })
+      const res = await fetch('http://localhost:5001/api/requests/my', { credentials: 'include' })
       const data = await res.json()
       if (res.ok) {
-        const completed = data.requests?.filter(
-          r => r.status === 'accepted' && r.ride?.status === 'completed'
-        ) || []
+        setAllRequests(data.requests || [])
+        const completed = data.requests?.filter(r => r.status === 'accepted' && r.ride?.status === 'completed') || []
         setCompletedRides(completed)
       }
     } catch (error) {
-      console.error('Error fetching completed rides:', error)
+      console.error('Error fetching requests:', error)
     }
   }
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    })
+  const getRequestId = (rideId) => {
+    const req = allRequests.find(r => r.ride?._id === rideId && ['pending', 'accepted'].includes(r.status))
+    return req?._id
   }
 
-  if (loading) return (
-    <div className="flex justify-center py-20">
-      <span className="loading loading-spinner loading-lg"></span>
-    </div>
-  )
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  }
+
+  if (loading) return <div className="flex justify-center py-20"><span className="loading loading-spinner loading-lg"></span></div>
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -68,7 +60,6 @@ const PassengerDashboardPage = ({ user }) => {
         <p className="text-base-content/60">Track your ride requests and upcoming trips</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <div className="card bg-base-100 shadow-sm">
           <div className="card-body py-4">
@@ -105,14 +96,11 @@ const PassengerDashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Upcoming Rides */}
       <div className="card bg-base-100 shadow-md mb-6">
         <div className="card-body">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Upcoming Rides</h2>
-            <button className="btn btn-primary btn-sm" onClick={() => navigate('/')}>
-              Browse Rides
-            </button>
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/')}>Browse Rides</button>
           </div>
           {!dashboard?.upcomingRides?.length ? (
             <p className="text-base-content/50 text-sm py-4 text-center">No upcoming rides</p>
@@ -126,9 +114,8 @@ const PassengerDashboardPage = ({ user }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="badge badge-success badge-outline">Accepted</div>
-                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}`)}>
-                      View
-                    </button>
+                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}`)}>View</button>
+                    <button className="btn btn-info btn-xs" onClick={() => navigate(`/negotiate/${request._id}`)}>Negotiate</button>
                   </div>
                 </div>
               ))}
@@ -137,7 +124,6 @@ const PassengerDashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Pending Requests */}
       <div className="card bg-base-100 shadow-md mb-6">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-4">Pending Requests</h2>
@@ -151,7 +137,10 @@ const PassengerDashboardPage = ({ user }) => {
                     <p className="font-medium">{request.ride?.origin} → {request.ride?.destination}</p>
                     <p className="text-sm text-base-content/60">{formatDate(request.ride?.departureTime)} — Tk {request.ride?.fare}</p>
                   </div>
-                  <div className="badge badge-warning badge-outline">Pending</div>
+                  <div className="flex items-center gap-2">
+                    <div className="badge badge-warning badge-outline">Pending</div>
+                    <button className="btn btn-info btn-xs" onClick={() => navigate(`/negotiate/${request._id}`)}>Negotiate</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -159,7 +148,6 @@ const PassengerDashboardPage = ({ user }) => {
         </div>
       </div>
 
-      {/* Completed Rides */}
       <div className="card bg-base-100 shadow-md">
         <div className="card-body">
           <h2 className="text-lg font-semibold mb-4">Completed Rides</h2>
@@ -175,12 +163,8 @@ const PassengerDashboardPage = ({ user }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="badge badge-success badge-outline">Completed</div>
-                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}`)}>
-                      View
-                    </button>
-                    <button className="btn btn-warning btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}/review`)}>
-                      Review
-                    </button>
+                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}`)}>View</button>
+                    <button className="btn btn-warning btn-xs" onClick={() => navigate(`/rides/${request.ride?._id}/review`)}>Review</button>
                   </div>
                 </div>
               ))}

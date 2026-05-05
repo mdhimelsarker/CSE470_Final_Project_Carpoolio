@@ -3,14 +3,14 @@ import RideRequest from "../models/RideRequest.js";
 import Negotiation from "../models/Negotiation.js";
 
 function isParticipant(negotiation, userId) {
+    const driverId = negotiation.driver?._id || negotiation.driver;
+    const passengerId = negotiation.passenger?._id || negotiation.passenger;
     return (
-        negotiation.driver.toString() === userId.toString() ||
-        negotiation.passenger.toString() === userId.toString()
+        driverId.toString() === userId.toString() ||
+        passengerId.toString() === userId.toString()
     );
 }
 
-// @desc    Start negotiation for a ride request
-// @route   POST /api/negotiations/start
 export async function startNegotiation(req, res) {
     try {
         const { rideRequestId } = req.body;
@@ -67,8 +67,6 @@ export async function startNegotiation(req, res) {
     }
 }
 
-// @desc    Send plain message in negotiation
-// @route   POST /api/negotiations/:negotiationId/message
 export async function sendMessage(req, res) {
     try {
         const { negotiationId } = req.params;
@@ -99,18 +97,13 @@ export async function sendMessage(req, res) {
 
         await negotiation.save();
 
-        res.status(200).json({
-            message: "Message sent",
-            negotiation,
-        });
+        res.status(200).json({ message: "Message sent", negotiation });
     } catch (error) {
         console.error("Error in sendMessage controller:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
 
-// @desc    Propose fare in negotiation
-// @route   POST /api/negotiations/:negotiationId/propose-fare
 export async function proposeFare(req, res) {
     try {
         const { negotiationId } = req.params;
@@ -142,18 +135,13 @@ export async function proposeFare(req, res) {
 
         await negotiation.save();
 
-        res.status(200).json({
-            message: "Fare proposed successfully",
-            negotiation,
-        });
+        res.status(200).json({ message: "Fare proposed successfully", negotiation });
     } catch (error) {
         console.error("Error in proposeFare controller:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
 
-// @desc    Agree on fare and finalize negotiation
-// @route   POST /api/negotiations/:negotiationId/agree-fare
 export async function agreeFare(req, res) {
     try {
         const { negotiationId } = req.params;
@@ -187,7 +175,6 @@ export async function agreeFare(req, res) {
                     break;
                 }
             }
-
             if (!agreedFare) {
                 return res.status(400).json({ message: "No proposed fare found. Provide fare in request body." });
             }
@@ -204,18 +191,13 @@ export async function agreeFare(req, res) {
 
         await negotiation.save();
 
-        res.status(200).json({
-            message: "Fare agreed successfully",
-            negotiation,
-        });
+        res.status(200).json({ message: "Fare agreed successfully", negotiation });
     } catch (error) {
         console.error("Error in agreeFare controller:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 }
 
-// @desc    Get negotiation details/messages
-// @route   GET /api/negotiations/:negotiationId
 export async function getNegotiation(req, res) {
     try {
         const { negotiationId } = req.params;

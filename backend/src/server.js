@@ -12,7 +12,7 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv"
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import savedRouteRoutes from "./routes/savedRoutes.js";
-
+import adminRideRoutes from "./routes/adminRide.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import rideStatusRoutes from "./routes/rideStatus.routes.js";
 import historyRoutes from "./routes/history.routes.js";
@@ -48,10 +48,10 @@ app.use("/api/negotiations", negotiationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-
 app.use("/api/ride-status", rideStatusRoutes);
 app.use("/api/history", historyRoutes);
 app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/rides", adminRideRoutes);
 
 app.get("/", (_req, res) => {
     res.status(200).json({
