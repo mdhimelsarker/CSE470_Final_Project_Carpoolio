@@ -131,7 +131,7 @@ export async function cancelRide(req, res) {
 // @route   GET /api/rides
 export async function getAllRides(req, res) {
     try {
-        const { origin, destination, date, seats } = req.query;
+        const { origin, destination, date, seats, page = 1, limit = 6 } = req.query;
 
         const filter = { status: "open" };
 
@@ -145,9 +145,13 @@ export async function getAllRides(req, res) {
             filter.departureTime = { $gte: start, $lt: end };
         }
 
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
         const rides = await Ride.find(filter)
             .populate("driver", "name email avgRating")
-            .populate("vehicle");
+            .populate("vehicle")
+            .skip(skip)
+            .limit(parseInt(limit));
 
         res.status(200).json(rides);
     } catch (error) {

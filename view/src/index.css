@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[data-theme="sunset"] .card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="sunset"] .input,
+[data-theme="sunset"] .select,
+[data-theme="sunset"] .textarea {
+  border-color: rgba(255, 255, 255, 0.15);
+}

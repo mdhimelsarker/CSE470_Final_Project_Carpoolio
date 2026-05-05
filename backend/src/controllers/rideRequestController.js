@@ -40,6 +40,13 @@ export async function sendRequest(req, res) {
             passenger: req.user._id,
         });
 
+        await Notification.create({
+            recipient: ride.driver,
+            type: "ride_request",
+            message: `${req.user.name} has requested to join your ride from ${ride.origin} to ${ride.destination}.`,
+            relatedRide: rideId,
+        });
+
         res.status(201).json({
             message: "Ride request sent successfully",
             request,
